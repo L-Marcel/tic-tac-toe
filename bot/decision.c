@@ -21,7 +21,6 @@ float getChance(PossibleResult results[MAX_RESULTS], int board[SPACES], int roun
   int occurrences = 0;
   int notLoseOccurrences = 0;
 
-  //choice
   int boardAfterChoice[SPACES];
   memcpy(boardAfterChoice, board, sizeof(int) * SPACES);
   boardAfterChoice[choice] = BOT_ID;
@@ -53,7 +52,7 @@ int getBotDecision(int board[SPACES], int difficult, int round) {
     if(round < 8 && board[i] == -1 && (((chance < (0.25 * (difficult + 1)))) || (bestChoice == -1))) {
       float newChance = getChance(results, board, round + 1, i);
 
-      //or will win (task)
+      //will win (task, in work)
       if(newChance >= chance) {
         chance = newChance;
         bestChoice = i;
