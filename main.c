@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
 #include <locale.h>
 #include <windows.h>
-#include "bot.c"
+#include "bot/decision.c"
 
 char *getPlayerSymbol(int playerId, int index) {
   if(playerId == BOT_ID) {
@@ -29,6 +28,15 @@ void printBoard(int grid[SPACES]) {
   printf(" %s | %s | %s\n", getPlayerSymbol(grid[6], 7), getPlayerSymbol(grid[7], 8), getPlayerSymbol(grid[8], 9));
 };
 
+void printBoardWithputClear(int grid[SPACES]) {
+  printf(" %s | %s | %s\n", getPlayerSymbol(grid[0], 1), getPlayerSymbol(grid[1], 2), getPlayerSymbol(grid[2], 3));
+  printf("-----------\n");
+  printf(" %s | %s | %s\n", getPlayerSymbol(grid[3], 4), getPlayerSymbol(grid[4], 5), getPlayerSymbol(grid[5], 6));
+  printf("-----------\n");
+  printf(" %s | %s | %s\n", getPlayerSymbol(grid[6], 7), getPlayerSymbol(grid[7], 8), getPlayerSymbol(grid[8], 9));
+};
+
+
 int main() {
   UINT CP_DEFAULT = GetConsoleOutputCP();
 
@@ -37,7 +45,7 @@ int main() {
 
   int difficult;
   int roundOf = PLAYER_ID;
-
+  printf("Aviso: o bot ainda não funciona completamentamente!");
   printf("\nSelecione o nível de dificuldade:\n[0] - Fácil\n[1] - Médio\n[2] - Difícil\n[3] - Impossível\n>> ");
   scanf("%d", &difficult);
   fflush(stdin);
@@ -49,6 +57,7 @@ int main() {
   fflush(stdin);
   
   int round = 0;
+  int selectedByBot = -1;
   while(true) {
     bool playerIsTheWinner = playerWin(board, PLAYER_ID);
     bool botIsTheWinner = playerWin(board, BOT_ID);
@@ -69,12 +78,20 @@ int main() {
       roundOf = BOT_ID;
       
       int selectedPosition;
-      printBoard(board);
+      if(selectedByBot == -1) {
+        printBoard(board);
+      } else {
+        system("cls");
+        printf("O bot selecionou a casa de número %d!\n", selectedByBot + 1);
+        printBoardWithputClear(board);
+        selectedByBot = -1;
+      };
+      
       printf("\nAviso: 'O' te representa, 'X' representa o bot!");
-
       while(true) {
         printf("\nEscolha o número uma casa válida >> ");
         scanf("%d", &selectedPosition);
+        fflush(stdin);
 
         bool positionIsValid = 
           selectedPosition <= 9 &&
@@ -91,6 +108,8 @@ int main() {
       };
     } else {
       roundOf = PLAYER_ID;
+      selectedByBot = getBotDecision(board, difficult, round);
+      board[selectedByBot] = BOT_ID;
     };
 
     round++;

@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
 #define POSSIBILITIES 512
 #define SPACES 9
 #define BOT_ID 0
 #define PLAYER_ID 1
+
+//Eu testei antes de setar para ver o número
 #define MAX_RESULTS 140
 
 typedef struct PossibleResult {
@@ -117,8 +120,6 @@ bool playerWin(int grid[SPACES], int player) {
 
   bool win = winDiagonal || winHorizontal || winVertical;
   
-  
-
   return win;
 };
 
@@ -138,11 +139,4 @@ void setWinPossibilities(int grids[POSSIBILITIES][SPACES], PossibleResult result
       index++;
     };
   };
-};
-
-int getBotDecision(int board[SPACES], int difficult) {
-  int grids[POSSIBILITIES][SPACES] = {0};
-  PossibleResult results[MAX_RESULTS];
-  setPossibilities(grids, POSSIBILITIES, 0);
-  setWinPossibilities(grids, results);
 };
