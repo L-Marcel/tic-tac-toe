@@ -110,7 +110,7 @@ int getBotDecision(int board[SPACES], int difficult, int round) {
       };
 
       //printf("Candidate: (%f%%) %d %d Bot: %d / Player: %d\n", newChance, i, newChance >= chance, botWillWin, playerWillWin);
-      if(!playerWillWin && (botWillWin || ((newChance >= chance) && !botWillWin)) && (((newChance <= (0.4 + (0.15 * (difficult + 1))))) || (bestChoice == -1))) {
+      if(!playerWillWin && (botWillWin || ((newChance >= chance) && !botWillWin)) && (((newChance <= (0.25 + (0.1875 * (difficult + 1))))) || (bestChoice == -1))) {
         //printf("New best chance: %.2f%% %.2f%% %d %.2f%%\n", chance * 100.0, newChance * 100, i, 0.25 * (difficult + 1) * 100);
         chance = newChance;
         bestChoice = i;
