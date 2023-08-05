@@ -6,8 +6,6 @@
 #define SPACES 9
 #define BOT_ID 0
 #define PLAYER_ID 1
-
-//Eu testei antes de setar para ver o número
 #define MAX_RESULTS 140
 
 typedef struct PossibleResult {
@@ -132,7 +130,7 @@ void setWinPossibilities(int grids[POSSIBILITIES][SPACES], PossibleResult result
     if(possibilityIsValid) {
       PossibleResult result;
       result.botLose = botWillLose;
-
+      
       memcpy(result.grid, grids[l], sizeof(int) * SPACES);
 
       results[index] = result;
