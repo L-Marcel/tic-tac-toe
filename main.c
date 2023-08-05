@@ -43,6 +43,9 @@ int main() {
   setlocale(LC_ALL, "Portuguese_Brasil");
   SetConsoleOutputCP(65001);
 
+  int botWins = 0;
+  int playerWins = 0;
+
   while(true) {
     int difficult;
     int roundOf = PLAYER_ID;
@@ -85,10 +88,12 @@ int main() {
 
       if(playerIsTheWinner) {
         printBoard(board);
+        playerWins++;
         printf("\nParabéns, voce venceu o bot!");
         break;
       } else if(botIsTheWinner) {
         printBoard(board);
+        botWins++;
         printf("\nVoce perdeu...");
         break;
       } else if(round == 9) {
@@ -135,6 +140,8 @@ int main() {
 
       round++;
     };
+
+    printf("\n\nHistórico:\nBot: %d\nVocê: %d\n", botWins, playerWins);
 
     int again = 0;
     while(true) {
