@@ -45,7 +45,6 @@ int main() {
 
   int difficult;
   int roundOf = PLAYER_ID;
-  printf("Aviso: o bot ainda não funciona completamentamente!");
   printf("\nSelecione o nível de dificuldade:\n[0] - Fácil\n[1] - Médio\n[2] - Difícil\n[3] - Impossível\n>> ");
   scanf("%d", &difficult);
   fflush(stdin);

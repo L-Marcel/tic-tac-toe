@@ -47,6 +47,7 @@ float getChance(PossibleResult results[MAX_RESULTS], int board[SPACES], int roun
   for(int i = 0; i < MAX_RESULTS; i++) {
     if(
       matchGrid(boardAfterChoice, results[i].grid, round) && 
+      !(playerWin(results[i].grid, BOT_ID) && playerWin(results[i].grid, PLAYER_ID)) &&
       playerIsTheFirst(results[i].grid, BOT_ID, PLAYER_ID) == playerIsTheFirst(boardAfterChoice, BOT_ID, PLAYER_ID)
     ) {
       occurrences++;
@@ -74,6 +75,16 @@ bool checkIfBotIsTheWinner(int board[SPACES], int choice) {
   return botIsTheWinner;
 };
 
+bool checkIfPayerIsTheWinner(int board[SPACES], int choice, int botChoice) {
+  int boardAfterChoice[SPACES];
+  memcpy(boardAfterChoice, board, sizeof(int) * SPACES);
+  boardAfterChoice[botChoice] = BOT_ID;
+  boardAfterChoice[choice] = PLAYER_ID;
+
+  bool playerIsTheWinner = playerWin(boardAfterChoice, PLAYER_ID) && !playerWin(boardAfterChoice, BOT_ID);
+  return playerIsTheWinner;
+};
+
 int getBotDecision(int board[SPACES], int difficult, int round) {
   int grids[POSSIBILITIES][SPACES] = {0};
   setPossibilities(grids, POSSIBILITIES, 0);
@@ -84,6 +95,7 @@ int getBotDecision(int board[SPACES], int difficult, int round) {
   int bestChoice = -1;
   float chance = 0;
   bool botWillWin = false;
+  bool playerWillWin = false;
   bool easyModeIsEnabled = difficult <= 1;
 
   for(int i = 0; i < SPACES; i++) {
@@ -91,20 +103,31 @@ int getBotDecision(int board[SPACES], int difficult, int round) {
       float newChance = getChance(results, board, round + 1, i);
       botWillWin = checkIfBotIsTheWinner(board, i) && difficult >= 2;
 
-      //printf("Candidate: %f %d %d %d\n", newChance, i, newChance >= chance, (((newChance <= 0.2 + (0.2 * (difficult + 1)))) || (bestChoice == -1)));
-      if((botWillWin || ((newChance >= chance) && !botWillWin)) && (((newChance <= 0.4 + (0.15 * (difficult + 1)))) || (bestChoice == -1))) {
+      for(int p = 0; p < SPACES; p++) {
+        if(p != i && board[p] == -1) {
+          playerWillWin = playerWillWin || (checkIfPayerIsTheWinner(board, p, i) && difficult >= 1);
+        }
+      };
+
+      //printf("Candidate: (%f%%) %d %d Bot: %d / Player: %d\n", newChance, i, newChance >= chance, botWillWin, playerWillWin);
+      if(!playerWillWin && (botWillWin || ((newChance >= chance) && !botWillWin)) && (((newChance <= (0.4 + (0.15 * (difficult + 1))))) || (bestChoice == -1))) {
         //printf("New best chance: %.2f%% %.2f%% %d %.2f%%\n", chance * 100.0, newChance * 100, i, 0.25 * (difficult + 1) * 100);
         chance = newChance;
         bestChoice = i;
 
         if(botWillWin || easyModeIsEnabled) {
+          //printf("Bot will win: %d", bestChoice);
           return bestChoice;
         };
       };
     } else if(round >= 8 && board[i] == -1) {
+      //printf("Final round: %d", i);
       return i;
     };
+
+    playerWillWin = false;
   };
 
+  //printf("Final: %d\n", bestChoice);
   return bestChoice;
 };
