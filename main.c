@@ -20,7 +20,7 @@ char *getPlayerSymbol(int playerId, int index) {
 };
 
 void printBoard(int grid[SPACES]) {
-  system("cls");
+  //system("cls");
   printf("\n %s | %s | %s\n", getPlayerSymbol(grid[0], 1), getPlayerSymbol(grid[1], 2), getPlayerSymbol(grid[2], 3));
   printf("-----------\n");
   printf(" %s | %s | %s\n", getPlayerSymbol(grid[3], 4), getPlayerSymbol(grid[4], 5), getPlayerSymbol(grid[5], 6));
@@ -43,14 +43,15 @@ int main() {
   setlocale(LC_ALL, "Portuguese_Brasil");
   SetConsoleOutputCP(65001);
 
-  int botWins = 0;
-  int playerWins = 0;
+  int botWins[5] = {0,0,0,0,0};
+  int playerWins[5] = {0,0,0,0,0};
+  int draws[5] = {0,0,0,0,0};
 
   while(true) {
     int difficult;
     int roundOf = PLAYER_ID;
 
-    system("cls");
+    //system("cls");
     while(true) {
       printf("\nSelecione o nível de dificuldade:\n[0] - Fácil\n[1] - Médio\n[2] - Difícil\n[3] - Impossível\n>> ");
       scanf("%d", &difficult);
@@ -59,14 +60,14 @@ int main() {
       if(difficult >= 0 && difficult <= 3) {
         break;
       } else {
-        system("cls");
+        //system("cls");
         printf("\nSelecione uma opção válida!");
       };
     };
 
     int board[SPACES] = {-1,-1,-1,-1,-1,-1,-1,-1,-1};
 
-    system("cls");
+    //system("cls");
     while(true) {
       printf("\nSelecione quem começa primeiro:\n[0] Bot\n[1] Voce\n>> ");
       scanf("%d", &roundOf);
@@ -75,7 +76,7 @@ int main() {
       if(roundOf >= 0 && roundOf <= 1) {
         break;
       } else {
-        system("cls");
+        //system("cls");
         printf("\nSelecione uma opção válida!\n");
       };
     };
@@ -88,16 +89,20 @@ int main() {
 
       if(playerIsTheWinner) {
         printBoard(board);
-        playerWins++;
+        playerWins[4]++;
+        playerWins[difficult]++;
         printf("\nParabéns, voce venceu o bot!");
         break;
       } else if(botIsTheWinner) {
         printBoard(board);
-        botWins++;
+        botWins[4]++;
+        botWins[difficult]++;
         printf("\nVoce perdeu...");
         break;
       } else if(round == 9) {
         printBoard(board);
+        draws[4]++;
+        draws[difficult]++;
         printf("\nTemos um empate!");
         break;
       } else if(roundOf == PLAYER_ID) {
@@ -107,7 +112,7 @@ int main() {
         if(selectedByBot == -1) {
           printBoard(board);
         } else {
-          system("cls");
+          //system("cls");
           printf("\nO bot selecionou a casa de número %d!\n", selectedByBot + 1);
           printBoardWithputClear(board);
           selectedByBot = -1;
@@ -141,7 +146,23 @@ int main() {
       round++;
     };
 
-    printf("\n\nHistórico:\nBot: %d\nVocê: %d\n", botWins, playerWins);
+    printf("\n\nHistórico:\nBot: %d (Fácil: %d / Médio: %d / Difícil: %d / Impossível: %d)\nVocê: %d (Fácil: %d / Médio: %d / Difícil: %d / Impossível: %d)\nEmpate: %d (Fácil: %d / Médio: %d / Difícil: %d / Impossível: %d)\n\n", 
+      botWins[4],
+      botWins[0],
+      botWins[1],
+      botWins[2],
+      botWins[3],
+      playerWins[4], 
+      playerWins[0], 
+      playerWins[1], 
+      playerWins[2], 
+      playerWins[3], 
+      draws[4],
+      draws[0],
+      draws[1],
+      draws[2],
+      draws[3]
+    );
 
     int again = 0;
     while(true) {
@@ -152,7 +173,7 @@ int main() {
       if(again >= 0 && again <= 1) {
         break;
       } else {
-        system("cls");
+        //system("cls");
         printf("\nSelecione uma opção válida!");
       };
     };

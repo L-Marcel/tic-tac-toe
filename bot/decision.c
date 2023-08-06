@@ -2,6 +2,13 @@
 #include <stdbool.h>
 #include "core.c"
 
+typedef struct Choice {
+  int value;
+  float chance;
+  bool playerWillWin;
+  bool botWillWin;
+} Choice;
+
 bool matchGrid(int grid[SPACES], int toCompare[SPACES], int round) {
   int equalsOccurrences = 0;
   for(int i = 0; i < SPACES; i++) {
@@ -11,25 +18,6 @@ bool matchGrid(int grid[SPACES], int toCompare[SPACES], int round) {
   };
 
   if(equalsOccurrences == round) {
-    return true;
-  };
-
-  return false;
-};
-
-bool playerIsTheFirst(int board[SPACES], int player, int enemy) {
-  int playerPlays = 0;
-  int enemyPlays = 0;
-
-  for(int i = 0; i < SPACES; i++) {
-    if(board[i] == player) {
-      playerPlays++;
-    } else if(board[i] == enemy) {
-      enemyPlays++;
-    };
-  };
-
-  if(playerPlays > enemyPlays) {
     return true;
   };
 
@@ -46,18 +34,22 @@ float getChance(PossibleResult results[MAX_RESULTS], int board[SPACES], int roun
 
   for(int i = 0; i < MAX_RESULTS; i++) {
     if(
+      //Exclui casos impossíveis
       matchGrid(boardAfterChoice, results[i].grid, round) && 
-      !(playerWin(results[i].grid, BOT_ID) && playerWin(results[i].grid, PLAYER_ID)) &&
+      //Pega somente as combinações onde o mesmo jogador foi o primeiro a jogar
       playerIsTheFirst(results[i].grid, BOT_ID, PLAYER_ID) == playerIsTheFirst(boardAfterChoice, BOT_ID, PLAYER_ID)
     ) {
       occurrences++;
 
+      //#debug
+      //printRow(results[i].grid, results[i].botLose);
       if(!results[i].botLose) {
         notLoseOccurrences++;
       };
     };
   };
 
+  //#debug
   //printf("\nGet chance: %f %f %.2f\n", notLoseOccurrences, occurrences, notLoseOccurrences / occurrences);
   if(notLoseOccurrences == 0 || occurrences == 0) {
     return 0;
@@ -92,8 +84,7 @@ int getBotDecision(int board[SPACES], int difficult, int round) {
   PossibleResult results[MAX_RESULTS];
   setWinPossibilities(grids, results);
 
-  int bestChoice = -1;
-  float chance = 0;
+  Choice bestChoice = { -1, 0.0, true, false };
   bool botWillWin = false;
   bool playerWillWin = false;
   bool easyModeIsEnabled = difficult <= 1;
@@ -101,33 +92,81 @@ int getBotDecision(int board[SPACES], int difficult, int round) {
   for(int i = 0; i < SPACES; i++) {
     if(round < 8 && board[i] == -1) {
       float newChance = getChance(results, board, round + 1, i);
-      botWillWin = checkIfBotIsTheWinner(board, i) && difficult >= 2;
+      botWillWin = checkIfBotIsTheWinner(board, i) && difficult >= 1;
+
+
+      //O centro é especial
+      if(i == 4 && newChance <= 0.9 && difficult >= 1) {
+        newChance += 0.1;
+        //#debug
+        //printf("Bonus: %d%%", 10);
+      };
+
+      //Quando o meio é ocupado, o canto se torna 
+      //um ponto importante
+      if(
+        board[4] == PLAYER_ID && 
+        (i == 0 || i == 2 || i == 6 || i == 8) && 
+        newChance <= 0.8 &&
+        difficult >= 2
+      ) {
+        newChance += 0.2;
+        //#debug
+        //printf("Bonus: %d%%", 20);
+      };
 
       for(int p = 0; p < SPACES; p++) {
         if(p != i && board[p] == -1) {
-          playerWillWin = playerWillWin || (checkIfPayerIsTheWinner(board, p, i) && difficult >= 1);
+          playerWillWin = playerWillWin || (checkIfPayerIsTheWinner(board, p, i) && difficult >= 2);
         }
       };
 
-      //printf("Candidate: (%f%%) %d %d Bot: %d / Player: %d\n", newChance, i, newChance >= chance, botWillWin, playerWillWin);
-      if(!playerWillWin && (botWillWin || ((newChance >= chance) && !botWillWin)) && (((newChance <= (0.25 + (0.1875 * (difficult + 1))))) || (bestChoice == -1))) {
-        //printf("New best chance: %.2f%% %.2f%% %d %.2f%%\n", chance * 100.0, newChance * 100, i, 0.25 * (difficult + 1) * 100);
-        chance = newChance;
-        bestChoice = i;
+      Choice currentChoice = { i, newChance, playerWillWin, botWillWin };
+      
+      //#debug
+      //printf("Candidate: (%f%%) %d Bot: %d / Player: %d\n", currentChoice.chance * 100.0, i + 1, botWillWin, playerWillWin);
+      if(
+        bestChoice.value == -1 ||
+        (
+          ( 
+            !bestChoice.playerWillWin ||
+            (
+              !currentChoice.playerWillWin && 
+              !bestChoice.botWillWin &&
+              bestChoice.playerWillWin
+            )
+          ) && (
+            currentChoice.botWillWin || 
+            (
+              (currentChoice.chance >= bestChoice.chance) && 
+              !currentChoice.playerWillWin &&
+              !currentChoice.botWillWin
+            )
+          ) && (
+            (currentChoice.chance <= (0.25 + (0.1875 * (difficult + 1))))
+          )
+        )
+      ) {
+        //#debug
+        //printf("New best chance: (Before -> %.2f%%) %.2f%% %d\n", bestChoice.chance * 100.0, currentChoice.chance * 100, i + 1);
+        bestChoice = currentChoice;
 
         if(botWillWin || easyModeIsEnabled) {
-          //printf("Bot will win: %d", bestChoice);
-          return bestChoice;
+          //#debug
+          //printf("Bot will win: %d", bestChoice.value + 1);
+          return bestChoice.value;
         };
       };
     } else if(round >= 8 && board[i] == -1) {
-      //printf("Final round: %d", i);
+      //#debug
+      //printf("Final round: %d", i + 1);
       return i;
     };
 
     playerWillWin = false;
   };
 
-  //printf("Final: %d\n", bestChoice);
-  return bestChoice;
+  //#debug
+  //printf("Final: %d\n", bestChoice.value + 1);
+  return bestChoice.value;
 };

@@ -38,32 +38,6 @@ void setPossibilities(int grids[POSSIBILITIES][SPACES], int size, int round) {
   };
 };
 
-void printRow(int grid[SPACES]) {
-  for (int c = 0; c < SPACES; c++) {
-    printf("%2d ", grid[c]);
-  }
-  printf("\n");
-}
-
-bool isValid(int grid[SPACES]) {
-  bool possibilitiesExists = false;
-  int botOccurrences = 0;
-
-  for(int c = 0; c < SPACES; c++) {
-    if(grid[c] == BOT_ID) {
-      botOccurrences++;
-    };
-  };
-
-  if(
-    (grid[0] == BOT_ID && botOccurrences == 5) ||
-    (grid[0] != BOT_ID && botOccurrences == 4)
-  ) {
-    possibilitiesExists = true;
-  };
-
-  return possibilitiesExists;
-};
 
 bool playerWin(int grid[SPACES], int player) {
   bool winHorizontal = false;
@@ -121,11 +95,75 @@ bool playerWin(int grid[SPACES], int player) {
   return win;
 };
 
+bool playerIsTheFirst(int board[SPACES], int player, int enemy) {
+  int playerPlays = 0;
+  int enemyPlays = 0;
+
+  for(int i = 0; i < SPACES; i++) {
+    if(board[i] == player) {
+      playerPlays++;
+    } else if(board[i] == enemy) {
+      enemyPlays++;
+    };
+  };
+
+  if(playerPlays > enemyPlays) {
+    return true;
+  };
+
+  return false;
+};
+
+
+void printRow(int grid[SPACES], bool willLose) {
+  for (int c = 0; c < SPACES; c++) {
+    printf("%2d ", grid[c]);
+  }
+
+  printf(" - Lose: %d / Bot win: %d / Player win: %d / Player is the first: %d\n", willLose, 
+    playerWin(grid, BOT_ID), 
+    playerWin(grid, PLAYER_ID),  
+    playerIsTheFirst(grid, PLAYER_ID, BOT_ID)
+  );
+}
+
+bool isValid(int grid[SPACES]) {
+  bool possibilitiesExists = false;
+  int botOccurrences = 0;
+
+  for(int c = 0; c < SPACES; c++) {
+    if(grid[c] == BOT_ID) {
+      botOccurrences++;
+    };
+  };
+
+  if(
+    (grid[0] == BOT_ID && botOccurrences == 5) ||
+    (grid[0] != BOT_ID && botOccurrences == 4)
+  ) {
+    possibilitiesExists = true;
+  };
+
+  return possibilitiesExists;
+};
+
 void setWinPossibilities(int grids[POSSIBILITIES][SPACES], PossibleResult results[MAX_RESULTS]) {
   int index = 0;
   for (int l = 0; l < POSSIBILITIES; l++) {
     bool possibilityIsValid = isValid(grids[l]);
-    bool botWillLose = playerWin(grids[l], PLAYER_ID);
+    bool botWillLose = 
+      ( 
+        //Pega na combinação do tabuleiro, os casos onde ambos ganham, 
+        //Onde o player começar primeiro, pois assim a vitória é dele
+        playerWin(grids[l], BOT_ID) && 
+        playerWin(grids[l], PLAYER_ID) && 
+        playerIsTheFirst(grids[l], PLAYER_ID, BOT_ID)
+      ) || ( 
+        //Na combinação do tabuleiro,
+        //Pega somente os casos onde o player ganha
+        !playerWin(grids[l], BOT_ID) && 
+        playerWin(grids[l], PLAYER_ID)
+      );
     
     if(possibilityIsValid) {
       PossibleResult result;
